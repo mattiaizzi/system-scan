@@ -1,0 +1,53 @@
+version: '2.2'
+services:
+  node01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    #stdin_open: true # docker run -i
+    #tty: true        # docker run -t
+    container_name: node01
+    environment:
+      - node.name=node01
+      - cluster.name=es-cluster-7
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - es-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.11.1
+    environment:
+      ELASTICSEARCH_HOSTS: http://node01:9200
+    ports:
+      - 5601:5601
+    networks:
+      - es-network
+    depends_on:
+      - node01
+  
+  metricbeat:
+    build: .
+    # to specify the built image name and version, add "image" config
+    #image: metricbeat_deployment_metricbeat:0.1.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://host.docker.internal:9200
+      KIBANA_HOST: http://host.docker.internal:5601
+    volumes:
+      - metricbeat-data01:/usr/share/metricbeat/data
+
+volumes:
+  es-data01:
+    driver: local
+  metricbeat-data01:
+    driver: local
+
+networks:
+  es-network:
+    driver: bridge
