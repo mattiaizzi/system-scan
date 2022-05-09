@@ -1,0 +1,18 @@
+version: '2.2'
+services:
+
+  metricbeat:
+    build: .
+    # to specify the built image name and version, add "image" config
+    #image: metricbeat_deployment_metricbeat:0.1.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://host.docker.internal:9200
+      KIBANA_HOST: http://host.docker.internal:5601
+    volumes:
+      - metricbeat-data01:/usr/share/metricbeat/data
+    extra_hosts:
+      host.docker.internal: host-gateway
+
+volumes:
+  metricbeat-data01:
+    driver: local
